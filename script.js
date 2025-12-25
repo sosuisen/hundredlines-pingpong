@@ -45,25 +45,33 @@ const draw = () => {
     ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
     ctx.fill();
     const elapsed = ((Date.now() - stage.startTime) / 1000).toFixed(1);
-    ctx.font = '20px Arial';
-    ctx.fillText(elapsed + 's', c.width / 2 - 20, 30);
-    if (ball.x <= ball.radius || ball.x >= c.width - ball.radius) {
+    displayTextArray = displayTextArray.filter(t => t.id !== 'elapsed');
+    displayTextArray.push({ id: 'elapsed', text: elapsed + 's', size: 20, x: c.width / 2 - 20, y: 30, endTime: Infinity });
+    if (ball.y >= c.height) { // Game over
+        const elapsed = ((Date.now() - stage.startTime) / 1000).toFixed(1);
+        displayTextArray = [
+            { text: 'RESULTS', size: 30, x: 120, y: 180, endTime: Infinity },
+            { text: elapsed + 's', size: 30, x: 160, y: 250, endTime: Infinity },
+            { text: 'CLICK TO RESTART', size: 30, x: 60, y: 320, endTime: Infinity }
+        ];
+        stage.started = false;
+    }
+    else if (ball.x <= ball.radius || ball.x >= c.width - ball.radius) {
         ball.dx = -ball.dx + randomSpeed();
         ball.dy += randomSpeed();
-        stage.color = changeColor();
         sound.wall.play();
+        stage.color = changeColor();
     }
-    if (ball.y <= ball.radius) {
+    else if (ball.y <= ball.radius) {
         ball.dy = -ball.dy + randomSpeed();
         ball.dx += randomSpeed();
-        stage.color = changeColor();
         sound.wallHigh.play();
+        stage.color = changeColor();
     }
-    if (ball.y >= racket.y - ball.radius && ball.y <= racket.y + racket.height && ball.x >= racket.x && ball.x <= racket.x + racket.width) {
+    else if (ball.y >= racket.y - ball.radius && ball.y <= racket.y + racket.height && ball.x >= racket.x && ball.x <= racket.x + racket.width) {
         const centerStart = racket.x + racket.width * (1 - CENTER_WIDTH_RATIO) / 2;
         const centerEnd = racket.x + racket.width * (1 - CENTER_WIDTH_RATIO) / 2 + racket.width * CENTER_WIDTH_RATIO;
-        const hitCenter = ball.x >= centerStart && ball.x <= centerEnd;
-        if (hitCenter) {
+        if (ball.x >= centerStart && ball.x <= centerEnd) {
             ball.dy = -BALL_INITIAL_PROPS.dy;
             ball.dx = ball.dx > 0 ? -Math.abs(BALL_INITIAL_PROPS.dx) : Math.abs(BALL_INITIAL_PROPS.dx);
             displayTextArray.push({ text: 'SPEED DOWN', size: 24, x: c.width / 2 - 85, y: c.height / 2, endTime: Date.now() + 1000 });
@@ -74,15 +82,6 @@ const draw = () => {
             sound.racket.play();
         }
         stage.color = changeColor();
-    }
-    if (ball.y >= c.height) {
-        const elapsed = ((Date.now() - stage.startTime) / 1000).toFixed(1);
-        displayTextArray = [
-            { text: 'RESULTS', size: 30, x: 120, y: 180, endTime: Infinity },
-            { text: elapsed + 's', size: 30, x: 160, y: 250, endTime: Infinity },
-            { text: 'CLICK TO RESTART', size: 30, x: 50, y: 320, endTime: Infinity }
-        ];
-        stage.started = false;
     }
     requestAnimationFrame(draw);
 }
